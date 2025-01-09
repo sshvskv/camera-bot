@@ -29,7 +29,7 @@ model = YOLOWorld("yolov8s-world")
 # классы объектов, которые модель умеет выделять:
 # model.names
 
-model.set_classes(["person, car"])
+model.set_classes(["person"])
 
 # !pip install  
 
@@ -85,7 +85,7 @@ def extract_frames(video_path, output_folder, num_frames):
 
 
 async def save_video_stream(interval_seconds=30):
-    url = "wss://sr-171-25-232-21.ipeye.ru/ws/mp4/live?name=419ad06fb33f4c97b5deca110889c70f&mode=live"
+    url = "wss://sr-171-25-232-16.ipeye.ru/ws/mp4/live?name=b1fc50446a904043a5279235ce7dea11&mode=live" # gubaha центральный
 
     headers = {
         'Upgrade': 'websocket',
@@ -143,7 +143,7 @@ async def save_video_stream(interval_seconds=30):
                                         f.write(chunk_data)
                                     print(f"Saved video chunk: {filename} - Size: {len(chunk_data)/1024:.2f} KB")
                                     extract_frames(filename, "./frames", 1)
-                                    res = detect_objects("./frames/frame_1.jpg", 0.3)
+                                    res = detect_objects("./frames/frame_1.jpg", 0.5)
                                     print("detected: ", res)
                                     break
 
@@ -157,7 +157,7 @@ async def save_video_stream(interval_seconds=30):
 async def main():
     while True:
         try:
-            await save_video_stream(interval_seconds=10)  # Reduced to 10 seconds for testing
+            await save_video_stream(interval_seconds=5)  # Reduced to 5 seconds for testing
             await asyncio.sleep(5)
         except Exception as e:
             print(f"Main loop error: {e}")

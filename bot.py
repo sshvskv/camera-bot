@@ -1,5 +1,8 @@
 import os
 import asyncio
+from datetime import datetime
+import pytz
+
 from telegram import Update, InputFile
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
@@ -9,6 +12,18 @@ from main import extract_frames, detect_objects
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Hello {update.effective_user.first_name} {update.effective_user.id}')
 
+async def situation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_photo(
+        photo=InputFile(
+            obj=open("frames/result.jpg", 'rb'),
+            filename="frame.jpg"),
+            caption="Текущая ситуация на горе"
+        )
+    # await app.bot.send_photo(chat_id=user,
+    #             photo=InputFile(obj=image, filename="frame.jpg"),
+    #             caption="Текущая ситуация на горе"
+    #         )
+
 async def monitor_web_cam(context):
     output_dir = "video_chunks"
     # массив названий видеофайлов
@@ -16,14 +31,21 @@ async def monitor_web_cam(context):
     if len(videos) > 0: # если уже скачали видео
         filename = videos[0]
         extract_frames(filename, "./frames", 1) # достаем кадр из видео
-        result = detect_objects("./frames/frame_1.jpg", 0.1) # распознаём объекты
+        result = detect_objects("./frames/frame_1.jpg", 0.5) # распознаём объекты
+        # число людей
+        n_people = len(result)
+        print(n_people)
+        # TODO: текущий момент времени (время в формате год месяц день часы минуты секунды)
+        current_dateTime = datetime.now(pytz.timezone('Asia/Yekaterinburg'))
+        print(current_dateTime)
+
         print(result)
         for user in [465999142, 96079551]: # отправляем нам сообщение с фото
             image = open("./frames/result.jpg", 'rb')
             await app.bot.send_photo(
                 chat_id=user,
                 photo=InputFile(obj=image, filename="frame.jpg"),
-                caption="Текущая ситуация на границе"
+                caption="Текущая ситуация на горе"
             )
         for video in videos:
             os.remove(f"{output_dir}/{video}")
@@ -38,6 +60,7 @@ async def monitor_web_cam(context):
 app = ApplicationBuilder().token("7766586491:AAEs4gzKwjGHzo5iNE-RPZ10DbdwG1mR8sI").build()
 
 app.add_handler(CommandHandler("hello", hello))
+app.add_handler(CommandHandler("situation", situation))
 
 if __name__ == "__main__":
     j = app.job_queue
