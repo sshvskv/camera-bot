@@ -1,0 +1,28 @@
+version: '3'
+services:
+  telegram_bot:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: telegram-bot
+    network_mode: host
+    command: python bot.py
+    volumes:
+      - video_chunks:/app/video_chunks
+      - frames:/app/frames
+  video_monitoring:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: video-monitoring
+    network_mode: host
+    command: python main.py
+    volumes:
+      - video_chunks:/app/video_chunks
+      - frames:/app/frames
+
+volumes:
+  video_chunks:
+  frames:
