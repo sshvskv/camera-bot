@@ -172,3 +172,4 @@ cython_debug/
 frames/
 video_chunks/
 *.pt
+.DS_Store
