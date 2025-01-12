@@ -22,6 +22,7 @@ import time
 import os
 from datetime import datetime
 from ultralytics import YOLOWorld
+import pytz
 
 # используем предобученную модель
 model = YOLOWorld("yolov8s-world")
@@ -133,8 +134,8 @@ async def save_video_stream(interval_seconds=30):
 
                             current_time = time.time()
                             if current_time - start_time >= interval_seconds:
-                                # Generate filename with timestamp
-                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                # текущий момент времени (время в формате год месяц день часы минуты секунды)
+                                timestamp = datetime.now(pytz.timezone('Asia/Yekaterinburg')).strftime("%Y%m%d_%H%M%S")
                                 filename = f"{output_dir}/video_chunk_{timestamp}.mp4"
 
                                 # Save only if we have enough data
@@ -144,6 +145,11 @@ async def save_video_stream(interval_seconds=30):
                                     print(f"Saved video chunk: {filename} - Size: {len(chunk_data)/1024:.2f} KB")
                                     extract_frames(filename, "./frames", 1)
                                     res = detect_objects("./frames/frame_1.jpg", 0.5)
+                                    # число людей
+                                    n_people = len(res)
+                                    timestamp = datetime.now(pytz.timezone('Asia/Yekaterinburg')).strftime("%Y-%m-%d %H:%M:%S")
+                                    with open("./data/people_count.csv", "a") as file:
+                                        file.write(f"{timestamp},{n_people},{filename}\n")
                                     print("detected: ", res)
                                     break
 

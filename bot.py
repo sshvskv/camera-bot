@@ -1,7 +1,6 @@
 import os
 import asyncio
 from datetime import datetime
-import pytz
 
 from telegram import Update, InputFile
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
@@ -32,13 +31,6 @@ async def monitor_web_cam(context):
         filename = videos[0]
         extract_frames(filename, "./frames", 1) # достаем кадр из видео
         result = detect_objects("./frames/frame_1.jpg", 0.5) # распознаём объекты
-        # число людей
-        n_people = len(result)
-        print(n_people)
-        # TODO: текущий момент времени (время в формате год месяц день часы минуты секунды)
-        current_dateTime = datetime.now(pytz.timezone('Asia/Yekaterinburg'))
-        print(current_dateTime)
-
         print(result)
         for user in [465999142, 96079551]: # отправляем нам сообщение с фото
             image = open("./frames/result.jpg", 'rb')
