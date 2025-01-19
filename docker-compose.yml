@@ -9,8 +9,8 @@ services:
     network_mode: host
     command: python bot.py
     volumes:
-      - video_chunks:/app/video_chunks
-      - frames:/app/frames
+      - ./video_chunks:/app/video_chunks
+      - ./frames:/app/frames
   video_monitoring:
     restart: unless-stopped
     build:
@@ -20,9 +20,7 @@ services:
     network_mode: host
     command: python main.py
     volumes:
-      - video_chunks:/app/video_chunks
-      - frames:/app/frames
+      - ./video_chunks:/app/video_chunks
+      - ./frames:/app/frames
+      - ./data:/app/data
 
-volumes:
-  video_chunks:
-  frames:

@@ -35,18 +35,28 @@ model.set_classes(["person"])
 # !pip install  
 
 
-def detect_objects(path, conf):
+def remove_files():
+    for filename in os.listdir("./frames"):
+        file_path = os.path.join("./frames", filename)
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print(f'Failed to delete {file_path}. Reason: {e}')
+    print("All files removed from ./frames directory")
+
+def detect_objects(path, conf, timestamp=""):
   results = model.predict(
       path,
       conf=conf  # помечать только объекты, относящиеся к классу с вероятностью от 0.3
   )
-  results[0].save(filename="./frames/result.jpg")
+  results[0].save(filename=f"./frames/result_{timestamp}.jpg")
   
   return (results[0].summary())
 
 
 # Function to extract frames
-def extract_frames(video_path, output_folder, num_frames):
+def extract_frames(video_path, output_folder, num_frames, timestamp):
     # Check if output directory exists, if not, create it
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -72,7 +82,7 @@ def extract_frames(video_path, output_folder, num_frames):
 
         # Save the frame if it is one of the target frames
         if count % interval == 0:
-            frame_filename = os.path.join(output_folder, f"frame_{extracted+1}.jpg")
+            frame_filename = os.path.join(output_folder, f"frame_{extracted+1}_{timestamp}.jpg")
             cv2.imwrite(frame_filename, frame)
             print(f"Saved: {frame_filename}")
             extracted += 1
@@ -143,8 +153,10 @@ async def save_video_stream(interval_seconds=30):
                                     with open(filename, "wb") as f:
                                         f.write(chunk_data)
                                     print(f"Saved video chunk: {filename} - Size: {len(chunk_data)/1024:.2f} KB")
-                                    extract_frames(filename, "./frames", 1)
-                                    res = detect_objects("./frames/frame_1.jpg", 0.5)
+                                    remove_files()
+                                    extract_frames(filename, "./frames", 1, timestamp)
+                                    res = detect_objects(f"./frames/frame_1_{timestamp}.jpg", 0.5, timestamp)
+                                    os.remove(filename)
                                     # число людей
                                     n_people = len(res)
                                     timestamp = datetime.now(pytz.timezone('Asia/Yekaterinburg')).strftime("%Y-%m-%d %H:%M:%S")
