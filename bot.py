@@ -28,14 +28,27 @@ async def situation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     recent_sum = recent_data['value'].sum()
     hourly_avg = int(working_hours.groupby(working_hours['timestamp'].dt.hour)['value'].sum().mean())
 
+    num_days = working_hours['timestamp'].dt.date.nunique()
+    hourly_avg_normalized = int(hourly_avg / num_days)
+
     print(working_hours.groupby(working_hours['timestamp'].dt.hour)['value'].sum())
+
+    if recent_sum < hourly_avg_normalized * 0.7: # если меньше 70% от среднего
+        status = "🟢"
+    elif recent_sum < hourly_avg_normalized: # если меньше среднего
+        status = "🟡"
+    else: # если больше среднего
+        status = "🔴" 
+
 
     await update.message.reply_photo(
         photo=InputFile(
             obj=open("frames/result.jpg", 'rb'),
             filename="frame.jpg"),
-            caption=f"Текущая ситуация на горе. Подъемов за последний час: {recent_sum}. Среднее число подъемов за час: {hourly_avg}"
-        )
+            caption=f"Текущая ситуация на горе: {status}\n"
+        f"Подъемов за последний час: {recent_sum}\n"
+        f"Среднее число подъемов за час: {hourly_avg_normalized}"
+    )
 
     # await app.bot.send_photo(chat_id=user,
     #             photo=InputFile(obj=image, filename="frame.jpg"),
