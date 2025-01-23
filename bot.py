@@ -6,6 +6,7 @@ from telegram import Update, InputFile
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 from main import extract_frames, detect_objects
+import time
 
 
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -25,6 +26,9 @@ async def situation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     recent_data = df[df['timestamp'] >= last_hour.strftime('%Y-%m-%d %H:%M:%S')] # данные за последний час
     recent_data = recent_data.reset_index()
 
+    last_week = last_timestamp - pd.Timedelta(days = 7) # последняя неделя
+    working_hours = working_hours[working_hours['timestamp'] >= last_week.strftime('%Y-%m-%d %H:%M:%S')]
+
     recent_sum = recent_data['value'].sum()
     hourly_avg = int(working_hours.groupby(working_hours['timestamp'].dt.hour)['value'].sum().mean())
 
@@ -33,22 +37,36 @@ async def situation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     print(working_hours.groupby(working_hours['timestamp'].dt.hour)['value'].sum())
 
-    if recent_sum < hourly_avg_normalized * 0.7: # если меньше 70% от среднего
+
+    if recent_sum < hourly_avg_normalized: # если меньше от среднего
         status = "🟢"
-    elif recent_sum < hourly_avg_normalized: # если меньше среднего
+    elif recent_sum < hourly_avg_normalized * 1.3: # если меньше среднего
         status = "🟡"
     else: # если больше среднего
         status = "🔴" 
 
-
-    await update.message.reply_photo(
-        photo=InputFile(
-            obj=open("frames/result.jpg", 'rb'),
-            filename="frame.jpg"),
-            caption=f"Текущая ситуация на горе: {status}\n"
-        f"Подъемов за последний час: {recent_sum}\n"
-        f"Среднее число подъемов за час: {hourly_avg_normalized}"
-    )
+    try:
+        await update.message.reply_photo(
+            photo=InputFile(
+                obj=open("frames/result.jpg", 'rb'),
+                filename="frame.jpg"),
+                caption=f"Текущая ситуация на горе: {status}\n"
+            f"Подъемов за последний час: {recent_sum}\n"
+            f"Среднее число подъемов за час: {hourly_avg_normalized}"
+        )
+    except Exception as e:
+        print(e)
+        time.sleep(1)
+        await update.message.reply_photo(
+            photo=InputFile(
+                obj=open("frames/result.jpg", 'rb'),
+                filename="frame.jpg"),
+                caption=f"Текущая ситуация на горе: {status}\n"
+            f"Подъемов за последний час: {recent_sum}\n"
+            f"Среднее число подъемов за час: {hourly_avg_normalized}"
+        )
+    finally:
+        print("Message sent")
 
     # await app.bot.send_photo(chat_id=user,
     #             photo=InputFile(obj=image, filename="frame.jpg"),
