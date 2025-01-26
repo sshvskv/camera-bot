@@ -2,15 +2,35 @@ import os
 import pandas as pd
 from datetime import datetime
 
+
 from telegram import Update, InputFile
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
 
 from main import extract_frames, detect_objects
 import time
 
 
-async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(f'Hello {update.effective_user.first_name} {update.effective_user.id}')
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f"""Добрый день, {update.effective_user.first_name}
+
+Я бот, который поможет вам следить за ситуацией на горе.
+Отправьте /situation чтобы узнать ситуацию на горе.
+Отправьте /help чтобы получить доступную информацию.  
+     """)
+
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_markdown(f""" Я бот, который поможет вам следить за ситуацией на горе.
+Отправьте /situation чтобы узнать ситуацию на горе.
+*Контакты*
++7 (342) 259-34-37
+info@gubahasport59.ru
+[Пермский край, г. Губаха, с/т «Майское», ул. Краснооктябрьская, д. 28](https://yandex.com/maps/-/CHadES0o) 
+     """)
+    
+async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(f"""Привет, {update.message.text}  
+     """)
+
 
 async def situation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     df = pd.read_csv(
@@ -101,8 +121,10 @@ async def monitor_web_cam(context):
 
 app = ApplicationBuilder().token("7766586491:AAEs4gzKwjGHzo5iNE-RPZ10DbdwG1mR8sI").build()
 
-app.add_handler(CommandHandler("hello", hello))
 app.add_handler(CommandHandler("situation", situation))
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("help", help))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
 
 if __name__ == "__main__":
     j = app.job_queue
