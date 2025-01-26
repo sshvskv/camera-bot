@@ -11,6 +11,7 @@ services:
     volumes:
       - ./video_chunks:/app/video_chunks
       - ./frames:/app/frames
+      - ./data:/app/data
   video_monitoring:
     restart: unless-stopped
     build:

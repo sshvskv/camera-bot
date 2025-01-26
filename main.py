@@ -50,7 +50,7 @@ def detect_objects(path, conf, timestamp=""):
       path,
       conf=conf  # помечать только объекты, относящиеся к классу с вероятностью от 0.3
   )
-  results[0].save(filename=f"./frames/result_{timestamp}.jpg")
+  results[0].save(filename=f"./frames/result.jpg")
   
   return (results[0].summary())
 
